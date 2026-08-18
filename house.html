@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Manufacturer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: { 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e' } } } } }
+    </script>
+    <style>
+        .card-zoom-img { transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        .product-card:hover .card-zoom-img { transform: scale(1.06); }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased">
+    <div class="min-h-full flex flex-col">
+        <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                    <a href="home.html" class="text-[11px] uppercase tracking-wider text-teal-700 dark:text-teal-400 font-semibold">← Library</a>
+                    <h1 id="brandTitle" class="text-lg font-bold tracking-tight text-slate-900 dark:text-white truncate">Loading…</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a id="siteLink" href="#" target="_blank" rel="noopener" class="hidden px-3 py-2 text-xs font-medium bg-teal-600 hover:bg-teal-700 text-white rounded-lg">Visit site</a>
+                    <a href="master_catalog.html" class="px-3 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">All brands</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center gap-3">
+                <input id="searchInput" type="text" placeholder="Search this house…"
+                    class="flex-1 min-w-[12rem] px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <span id="countText" class="text-xs text-slate-500">Loading products…</span>
+                <div id="catBar" class="w-full flex flex-wrap gap-1.5"></div>
+            </div>
+        </div>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+            <div id="empty" class="hidden text-center py-16 text-slate-500">No products in this house.</div>
+        </main>
+    </div>
+
+    <div id="detailModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="flex items-start justify-between p-5 border-b border-slate-100 dark:border-slate-800 gap-4">
+                <div class="min-w-0">
+                    <div id="dCat" class="text-[11px] uppercase tracking-wider text-teal-700 font-semibold"></div>
+                    <h3 id="dTitle" class="text-lg font-bold text-slate-900 dark:text-white mt-0.5"></h3>
+                    <div id="dMeta" class="mt-1 text-xs text-slate-500 font-mono"></div>
+                </div>
+                <button id="dClose" class="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100">✕</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden">
+                        <img id="dImg" src="" alt="" class="w-full h-full object-contain p-3" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=window.__HOUSE_FALLBACK">
+                    </div>
+                    <div id="dThumbs" class="flex gap-2 overflow-x-auto mt-3"></div>
+                </div>
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <h4 class="font-semibold text-slate-900 dark:text-white mb-1">Overview</h4>
+                        <p id="dOverview" class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed"></p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-900 dark:text-white mb-2">Specifications</h4>
+                        <dl id="dSpecs" class="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800"></dl>
+                    </div>
+                    <div id="dDlWrap" class="hidden">
+                        <h4 class="font-semibold text-slate-900 dark:text-white mb-2">Downloads</h4>
+                        <div id="dDownloads" class="flex flex-col gap-1.5"></div>
+                    </div>
+                    <a id="dLink" href="#" target="_blank" rel="noopener" class="inline-flex items-center justify-center w-full px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium rounded-xl">Visit product page</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FALLBACK = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f8fafc%22/%3E%3Ctext x=%2250%25%22 y=%2254%25%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-family=%22sans-serif%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E";
+        window.__HOUSE_FALLBACK = FALLBACK;
+        const brand = new URLSearchParams(location.search).get('brand') || '';
+        const grid = document.getElementById('grid');
+        const empty = document.getElementById('empty');
+        const searchInput = document.getElementById('searchInput');
+        const countText = document.getElementById('countText');
+        const catBar = document.getElementById('catBar');
+        let products = [];
+        let selectedCat = '';
+
+        document.getElementById('brandTitle').textContent = brand || 'Manufacturer';
+        document.title = brand ? brand + ' · House' : 'Manufacturer';
+
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+            });
+        }
+
+        function render() {
+            const q = searchInput.value.toLowerCase().trim();
+            const items = products.filter(function (p) {
+                if (selectedCat && p.category !== selectedCat) return false;
+                if (!q) return true;
+                return [p.name, p.category, p.sku, p.collection, p.finish].join(' ').toLowerCase().includes(q);
+            });
+            countText.textContent = items.length.toLocaleString() + ' of ' + products.length.toLocaleString() + ' products';
+            empty.classList.toggle('hidden', items.length > 0);
+            grid.classList.toggle('hidden', items.length === 0);
+            grid.innerHTML = items.slice(0, 120).map(function (p, i) {
+                const img = p.primary_image || FALLBACK;
+                return '<button type="button" data-idx="' + i + '" class="product-card text-left group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">' +
+                    '<div class="relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">' +
+                    '<img src="' + esc(img) + '" alt="" loading="lazy" referrerpolicy="no-referrer" class="card-zoom-img w-full h-full object-contain p-3" onerror="this.onerror=null;this.src=window.__HOUSE_FALLBACK">' +
+                    '</div>' +
+                    '<div class="p-4">' +
+                    '<div class="text-[11px] uppercase tracking-wider text-teal-700 dark:text-teal-400 font-semibold mb-0.5">' + esc(p.category || '') + '</div>' +
+                    '<h3 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">' + esc(p.name) + '</h3>' +
+                    '<div class="mt-2 text-[11px] font-mono text-slate-400">' + esc(p.sku || p.color || '') + '</div>' +
+                    '</div></button>';
+            }).join('');
+            grid.querySelectorAll('[data-idx]').forEach(function (btn) {
+                btn.onclick = function () { openDetail(items[Number(btn.getAttribute('data-idx'))]); };
+            });
+        }
+
+        function openDetail(p) {
+            if (!p) return;
+            document.getElementById('dCat').textContent = p.category || '';
+            document.getElementById('dTitle').textContent = p.name || '';
+            document.getElementById('dMeta').textContent = [p.sku, p.color || p.finish, p.price].filter(Boolean).join(' · ');
+            document.getElementById('dImg').src = p.primary_image || FALLBACK;
+            document.getElementById('dOverview').textContent = p.description || 'No overview on file.';
+            const specs = Object.assign({
+                Manufacturer: p.manufacturer_name || '',
+                SKU: p.sku || '',
+                Color: p.color || p.finish || '',
+                Price: p.price || '',
+                Collection: p.collection || ''
+            }, p.specs || {});
+            document.getElementById('dSpecs').innerHTML = Object.keys(specs).filter(function (k) { return specs[k]; }).map(function (k) {
+                return '<div><dt class="text-slate-400">' + esc(k) + '</dt><dd class="font-semibold text-slate-800 dark:text-slate-200">' + esc(String(specs[k])) + '</dd></div>';
+            }).join('') || '<div class="text-slate-400">No specifications on file.</div>';
+            const dls = p.downloads || [];
+            document.getElementById('dDlWrap').classList.toggle('hidden', !dls.length);
+            document.getElementById('dDownloads').innerHTML = dls.map(function (d) {
+                return '<a href="' + esc(d.url) + '" target="_blank" rel="noopener" class="text-xs text-teal-700 hover:underline">' + esc(d.name || 'Download') + '</a>';
+            }).join('');
+            const thumbs = (p.images && p.images.length ? p.images : [p.primary_image]).filter(Boolean).slice(0, 8);
+            document.getElementById('dThumbs').innerHTML = thumbs.map(function (u) {
+                return '<button type="button" class="w-14 h-14 rounded-xl border border-slate-200 overflow-hidden bg-slate-100"><img src="' + esc(u) + '" class="w-full h-full object-contain" referrerpolicy="no-referrer"></button>';
+            }).join('');
+            document.getElementById('dThumbs').querySelectorAll('img').forEach(function (im) {
+                im.parentElement.onclick = function () { document.getElementById('dImg').src = im.src; };
+            });
+            const link = document.getElementById('dLink');
+            link.href = p.url || '#';
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function paintCatBar() {
+            const counts = {};
+            products.forEach(function (p) {
+                const c = p.category || 'Other';
+                counts[c] = (counts[c] || 0) + 1;
+            });
+            const cats = Object.keys(counts).sort(function (a, b) { return a.localeCompare(b); });
+            if (!cats.length) { catBar.innerHTML = ''; return; }
+            catBar.innerHTML = ['<button data-cat="" class="px-2.5 py-1 rounded-full text-[11px] font-medium border ' + (selectedCat === '' ? 'bg-teal-600 text-white border-teal-600' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700') + '">All</button>'].concat(cats.map(function (c) {
+                const on = selectedCat === c;
+                return '<button data-cat="' + esc(c) + '" class="px-2.5 py-1 rounded-full text-[11px] font-medium border ' + (on ? 'bg-teal-600 text-white border-teal-600' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700') + '">' + esc(c) + ' ' + counts[c] + '</button>';
+            })).join('');
+            catBar.querySelectorAll('button').forEach(function (btn) {
+                btn.onclick = function () {
+                    selectedCat = btn.getAttribute('data-cat') || '';
+                    paintCatBar();
+                    render();
+                };
+            });
+        }
+
+        document.getElementById('dClose').onclick = function () {
+            document.getElementById('detailModal').classList.add('hidden');
+        };
+        document.getElementById('detailModal').onclick = function (e) {
+            if (e.target.id === 'detailModal') e.currentTarget.classList.add('hidden');
+        };
+        searchInput.addEventListener('input', render);
+
+        if (!brand) {
+            countText.textContent = 'Missing brand';
+            empty.classList.remove('hidden');
+        } else {
+            fetch('/api/house?brand=' + encodeURIComponent(brand))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    products = data.products || [];
+                    document.getElementById('brandTitle').textContent = data.brand || brand;
+                    if (data.url) {
+                        const a = document.getElementById('siteLink');
+                        a.href = data.url;
+                        a.classList.remove('hidden');
+                    }
+                    paintCatBar();
+                    render();
+                })
+                .catch(function () {
+                    countText.textContent = 'Failed to load this house';
+                    empty.classList.remove('hidden');
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local SQLite
+aareas.db
+aareas.db-wal
+aareas.db-shm
+
+# Generated / crawled dumps (too large for git)
+master_products.json
+master_products.csv
+master_catalog.html
+daltile_products.json
+daltile_products.csv
+index.html
