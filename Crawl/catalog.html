@@ -25,17 +25,34 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
         .card-zoom-img { transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
         .product-card:hover .card-zoom-img { transform: scale(1.06); }
+        .mc-logo { width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #0f766e, #042f2e); box-shadow: 0 4px 14px rgba(15,118,110,.25); overflow: visible; }
+        .mc-logo-top { animation: mc-float-y 3.5s ease-in-out infinite; }
+        .mc-logo-left { animation: mc-float-l 3.5s ease-in-out infinite .15s; }
+        .mc-logo-right { animation: mc-float-r 3.5s ease-in-out infinite .3s; }
+        @keyframes mc-float-y { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes mc-float-l { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-2.5px,1.5px); } }
+        @keyframes mc-float-r { 0%,100% { transform: translate(0,0); } 50% { transform: translate(2.5px,1.5px); } }
+        @media (prefers-reduced-motion: reduce) {
+            .mc-logo-top, .mc-logo-left, .mc-logo-right { animation: none; }
+        }
     </style>
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
 </head>
-<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
-    <div id="app" class="min-h-full flex flex-col">
-        <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-sm">
+<body class="h-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
+    <div id="app" class="h-full flex flex-col overflow-hidden">
+        <header class="shrink-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16 gap-4">
                     <a href="home.html" class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-800 flex items-center justify-center text-white shadow-md">
-                            <i data-lucide="boxes" class="w-5 h-5"></i>
-                        </div>
+                        <svg class="mc-logo" viewBox="0 0 64 64" aria-hidden="true">
+                            <g opacity="0.4" fill="none" stroke="#99f6e4" stroke-width="1">
+                                <path d="M32 10 L52 22 L52 42 L32 54 L12 42 L12 22 Z"/>
+                                <path d="M32 34 L52 22"/><path d="M32 34 L12 22"/><path d="M32 34 L32 54"/>
+                            </g>
+                            <g class="mc-logo-top"><path d="M32 12 L50 23 L32 33 L14 23 Z" fill="#5eead4" opacity="0.9"/></g>
+                            <g class="mc-logo-left"><path d="M14 25 L31 35 L31 51 L14 41 Z" fill="#14b8a6" opacity="0.9"/></g>
+                            <g class="mc-logo-right"><path d="M33 35 L50 25 L50 41 L33 51 Z" fill="#0d9488" opacity="0.9"/></g>
+                        </svg>
                         <div>
                             <div class="flex items-center gap-2">
                                 <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Master Catalog</h1>
@@ -75,7 +92,7 @@
             </div>
         </header>
 
-        <div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+        <div class="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
                 <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
                     <div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
@@ -106,9 +123,9 @@
             </div>
         </div>
 
-        <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
-            <aside class="w-64 flex-shrink-0 hidden lg:block">
-                <div class="sticky top-24 space-y-6">
+        <div class="flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex gap-6">
+            <aside class="w-64 flex-shrink-0 hidden lg:block overflow-y-auto custom-scrollbar">
+                <div class="space-y-6 pr-1">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                             <i data-lucide="filter" class="w-3.5 h-3.5"></i> Filter By Brand
@@ -128,7 +145,7 @@
                 </div>
             </aside>
 
-            <main class="flex-1 min-w-0">
+            <main id="productScroll" class="flex-1 min-w-0 min-h-0 overflow-y-auto custom-scrollbar">
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <span id="resultCountText" class="text-sm font-semibold text-slate-800 dark:text-slate-200">Showing products...</span>
                     <div id="activeFilterTags" class="flex flex-wrap items-center gap-1.5"></div>
@@ -157,17 +174,8 @@
                     <h3 class="text-base font-semibold text-slate-900 dark:text-white">No products match your criteria</h3>
                     <button id="emptyResetBtn" class="mt-4 px-4 py-2 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-xs transition">Clear Filters</button>
                 </div>
-                <div id="paginationContainer" class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 pt-4 text-xs">
-                    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                        <span>Items per page:</span>
-                        <select id="pageSizeSelect" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1 focus:ring-1 focus:ring-teal-500">
-                            <option value="24">24</option>
-                            <option value="48">48</option>
-                            <option value="96">96</option>
-                        </select>
-                    </div>
-                    <div id="paginationControls" class="flex items-center gap-1"></div>
-                </div>
+                <div id="scrollSentinel" class="h-8"></div>
+                <div id="scrollStatus" class="py-4 text-center text-xs text-slate-400"></div>
             </main>
         </div>
 
@@ -183,11 +191,11 @@
                     </button>
                 </div>
                 <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6 custom-scrollbar">
-                    <div class="space-y-3">
+                    <div class="space-y-3 min-w-0">
                         <div class="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
                             <img id="modalMainImg" src="" alt="" class="w-full h-full object-contain p-2" referrerpolicy="no-referrer">
                         </div>
-                        <div id="modalThumbnails" class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2"></div>
+                        <div id="modalThumbnails" class="flex flex-wrap gap-2"></div>
                     </div>
                     <div class="space-y-4 text-xs">
                         <div>
@@ -222,7 +230,7 @@
             </div>
         </div>
 
-        <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <footer class="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2 text-center text-xs text-slate-500 dark:text-slate-400">
             <p>Master Multi-Manufacturer Product Catalog • Powered by Automated Discovery Pipeline</p>
         </footer>
     </div>
@@ -233,6 +241,8 @@
         let currentView = "grid";
         let currentPage = 1;
         let pageSize = 24;
+        let loading = false;
+        let hasMore = true;
         let currentSort = "name_asc";
         let searchQuery = params.get("q") || "";
         let selectedBrand = params.get("brand") || "";
@@ -290,8 +300,7 @@
             refreshIcons();
         }
 
-        function renderGrid(items) {
-            document.getElementById("productGridView").innerHTML = items.map(function (p) {
+        function cardHtml(p) {
                 const imgUrl = p.primary_image || window.FALLBACK_IMG;
                 return "<div class='product-card group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col'>" +
                     "<div class='relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden cursor-pointer' data-open='" + esc(p.id) + "'>" +
@@ -310,12 +319,17 @@
                     "<span class='font-mono text-slate-400 text-[11px]'>" + esc(p.sku || "SKU N/A") + "</span>" +
                     "<button data-open='" + esc(p.id) + "' class='inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 font-semibold hover:underline'><span>Details</span><i data-lucide='arrow-right' class='w-3.5 h-3.5'></i></button>" +
                     "</div></div></div>";
-            }).join("");
         }
 
-        function renderTable(items) {
-            document.getElementById("productTableBody").innerHTML = items.map(function (p) {
-                return "<tr class='hover:bg-slate-50 dark:hover:bg-slate-800/50 transition cursor-pointer' data-open='" + esc(p.id) + "'>" +
+        function renderGrid(items, append) {
+            const el = document.getElementById("productGridView");
+            const html = items.map(cardHtml).join("");
+            if (append) el.insertAdjacentHTML("beforeend", html);
+            else el.innerHTML = html;
+        }
+
+        function rowHtml(p) {
+            return "<tr class='hover:bg-slate-50 dark:hover:bg-slate-800/50 transition cursor-pointer' data-open='" + esc(p.id) + "'>" +
                     "<td class='p-3'><div class='w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700'><img src='" + esc(p.primary_image || window.FALLBACK_IMG) + "' class='w-full h-full object-contain p-0.5' loading='lazy' referrerpolicy='no-referrer' onerror='this.onerror=null;this.src=window.FALLBACK_IMG'></div></td>" +
                     "<td class='p-3 font-semibold text-slate-900 dark:text-white'>" + esc(p.name) + "</td>" +
                     "<td class='p-3 text-slate-600 dark:text-slate-400 font-medium'>" + esc(p.manufacturer_name) + "</td>" +
@@ -323,13 +337,35 @@
                     "<td class='p-3 font-mono text-[11px] text-slate-500'>" + esc(p.sku || "-") + "</td>" +
                     "<td class='p-3 font-semibold text-emerald-600 dark:text-emerald-400'>" + esc(p.price || p.nominal_size || "-") + "</td>" +
                     "<td class='p-3 text-right'><a href='" + esc(p.url) + "' target='_blank' onclick='event.stopPropagation()' class='p-1.5 text-slate-400 hover:text-teal-600 rounded-md hover:bg-slate-100 inline-flex'><i data-lucide='external-link' class='w-4 h-4'></i></a></td></tr>";
-            }).join("");
         }
 
-        function render(data) {
-            pageItems = data.products || [];
+        function renderTable(items, append) {
+            const el = document.getElementById("productTableBody");
+            const html = items.map(rowHtml).join("");
+            if (append) el.insertAdjacentHTML("beforeend", html);
+            else el.innerHTML = html;
+        }
+
+        function bindOpen(scope) {
+            (scope || document).querySelectorAll("[data-open]").forEach(function (el) {
+                if (el.dataset.bound) return;
+                el.dataset.bound = "1";
+                el.addEventListener("click", function (e) {
+                    if (e.target.closest("a")) return;
+                    const id = el.getAttribute("data-open");
+                    const p = pageItems.find(function (x) { return x.id === id; });
+                    openQuickView(p);
+                });
+            });
+        }
+
+        function render(data, append) {
+            const incoming = data.products || [];
+            if (append) pageItems = pageItems.concat(incoming);
+            else pageItems = incoming;
             totalFiltered = data.total || 0;
-            document.getElementById("resultCountText").innerHTML = "Showing <span class='font-bold text-slate-900 dark:text-white'>" + totalFiltered.toLocaleString() + "</span> of <span class='text-slate-500'>" + (document.getElementById("statProducts").textContent || "") + "</span> products";
+            hasMore = pageItems.length < totalFiltered;
+            document.getElementById("resultCountText").innerHTML = "Showing <span class='font-bold text-slate-900 dark:text-white'>" + pageItems.length.toLocaleString() + "</span> of <span class='text-slate-500'>" + totalFiltered.toLocaleString() + "</span> products";
             const tags = document.getElementById("activeFilterTags");
             tags.innerHTML = "";
             function addTag(label, fn) {
@@ -346,34 +382,16 @@
             const empty = document.getElementById("emptyState");
             const grid = document.getElementById("productGridView");
             const table = document.getElementById("productTableView");
-            const pager = document.getElementById("paginationContainer");
             if (pageItems.length === 0) {
-                grid.classList.add("hidden"); table.classList.add("hidden"); empty.classList.remove("hidden"); pager.classList.add("hidden");
+                grid.classList.add("hidden"); table.classList.add("hidden"); empty.classList.remove("hidden");
+                document.getElementById("scrollStatus").textContent = "";
                 refreshIcons(); return;
             }
-            empty.classList.add("hidden"); pager.classList.remove("hidden");
-            if (currentView === "grid") { grid.classList.remove("hidden"); table.classList.add("hidden"); renderGrid(pageItems); }
-            else { grid.classList.add("hidden"); table.classList.remove("hidden"); renderTable(pageItems); }
-
-            document.querySelectorAll("[data-open]").forEach(function (el) {
-                el.addEventListener("click", function (e) {
-                    if (e.target.closest("a")) return;
-                    const id = el.getAttribute("data-open");
-                    const p = pageItems.find(function (x) { return x.id === id; });
-                    openQuickView(p);
-                });
-            });
-
-            const totalPages = Math.max(1, Math.ceil(totalFiltered / data.page_size));
-            const pc = document.getElementById("paginationControls");
-            if (totalPages <= 1) pc.innerHTML = "";
-            else {
-                pc.innerHTML = "<button id='prevPageBtn' class='px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium " + (currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-slate-50 dark:hover:bg-slate-800") + "'" + (currentPage === 1 ? " disabled" : "") + ">Previous</button>" +
-                    "<span class='px-3 py-1.5 text-slate-500'>Page " + currentPage + " of " + totalPages + "</span>" +
-                    "<button id='nextPageBtn' class='px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium " + (currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-slate-50 dark:hover:bg-slate-800") + "'" + (currentPage === totalPages ? " disabled" : "") + ">Next</button>";
-                document.getElementById("prevPageBtn").onclick = function () { if (currentPage > 1) { currentPage--; load(); window.scrollTo({ top: 0, behavior: "smooth" }); } };
-                document.getElementById("nextPageBtn").onclick = function () { if (currentPage < totalPages) { currentPage++; load(); window.scrollTo({ top: 0, behavior: "smooth" }); } };
-            }
+            empty.classList.add("hidden");
+            if (currentView === "grid") { grid.classList.remove("hidden"); table.classList.add("hidden"); renderGrid(incoming, append); }
+            else { grid.classList.add("hidden"); table.classList.remove("hidden"); renderTable(incoming, append); }
+            bindOpen();
+            document.getElementById("scrollStatus").textContent = hasMore ? "Scroll for more" : "End of results";
             refreshIcons();
         }
 
@@ -414,7 +432,19 @@
             refreshIcons();
         }
 
-        function load() {
+        function load(opts) {
+            const reset = !opts || opts.reset !== false;
+            if (loading) return;
+            if (!reset && !hasMore) return;
+            if (reset) {
+                currentPage = 1;
+                hasMore = true;
+                pageItems = [];
+                const sc = document.getElementById("productScroll");
+                if (sc) sc.scrollTop = 0;
+            }
+            loading = true;
+            document.getElementById("scrollStatus").textContent = "Loading…";
             const u = new URL("/api/products", location.origin);
             if (selectedBrand) u.searchParams.set("brand", selectedBrand);
             if (selectedCategory) u.searchParams.set("category", selectedCategory);
@@ -422,7 +452,19 @@
             u.searchParams.set("sort", currentSort);
             u.searchParams.set("page", String(currentPage));
             u.searchParams.set("page_size", String(pageSize));
-            fetch(u).then(function (r) { return r.json(); }).then(render);
+            fetch(u).then(function (r) { return r.json(); }).then(function (data) {
+                loading = false;
+                render(data, !reset);
+            }).catch(function () {
+                loading = false;
+                document.getElementById("scrollStatus").textContent = "Could not load more";
+            });
+        }
+
+        function loadMore() {
+            if (loading || !hasMore) return;
+            currentPage += 1;
+            load({ reset: false });
         }
 
         function resetAll() {
@@ -431,7 +473,6 @@
             document.getElementById("mobileSearchInput").value = "";
             document.getElementById("brandSearchInput").value = "";
             document.getElementById("clearSearchBtn").classList.add("hidden");
-            currentPage = 1;
             populateSidebar();
             load();
         }
@@ -454,8 +495,7 @@
             document.getElementById("clearSearchBtn").classList.add("hidden"); currentPage = 1; load();
         };
         document.getElementById("brandSearchInput").addEventListener("input", function (e) { brandQuery = e.target.value; populateSidebar(); });
-        document.getElementById("sortSelect").onchange = function (e) { currentSort = e.target.value; currentPage = 1; load(); };
-        document.getElementById("pageSizeSelect").onchange = function (e) { pageSize = parseInt(e.target.value, 10); currentPage = 1; load(); };
+        document.getElementById("sortSelect").onchange = function (e) { currentSort = e.target.value; load(); };
         document.getElementById("resetFiltersBtn").onclick = resetAll;
         document.getElementById("emptyResetBtn").onclick = resetAll;
         document.getElementById("closeModalBtn").onclick = function () { document.getElementById("quickViewModal").classList.add("hidden"); };
@@ -464,14 +504,25 @@
             currentView = "grid";
             document.getElementById("viewGridBtn").className = "p-1.5 rounded-md text-teal-700 dark:text-teal-400 bg-white dark:bg-slate-700 shadow-xs";
             document.getElementById("viewTableBtn").className = "p-1.5 rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
-            load();
+            document.getElementById("productGridView").classList.remove("hidden");
+            document.getElementById("productTableView").classList.add("hidden");
+            renderGrid(pageItems, false);
+            bindOpen();
+            refreshIcons();
         };
         document.getElementById("viewTableBtn").onclick = function () {
             currentView = "table";
             document.getElementById("viewTableBtn").className = "p-1.5 rounded-md text-teal-700 dark:text-teal-400 bg-white dark:bg-slate-700 shadow-xs";
             document.getElementById("viewGridBtn").className = "p-1.5 rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
-            load();
+            document.getElementById("productGridView").classList.add("hidden");
+            document.getElementById("productTableView").classList.remove("hidden");
+            renderTable(pageItems, false);
+            bindOpen();
+            refreshIcons();
         };
+        new IntersectionObserver(function (entries) {
+            if (entries[0] && entries[0].isIntersecting) loadMore();
+        }, { root: document.getElementById("productScroll"), rootMargin: "240px" }).observe(document.getElementById("scrollSentinel"));
         document.getElementById("exportBtn").onclick = function () {
             const u = new URL("/api/products", location.origin);
             if (selectedBrand) u.searchParams.set("brand", selectedBrand);

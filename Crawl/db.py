@@ -48,6 +48,7 @@ CORE = {
     "id", "manufacturer_id", "manufacturer_name", "name", "collection",
     "category", "raw_category", "sku", "price", "color", "description",
     "url", "primary_image", "image_count", "images", "downloads",
+    "updated_at",
 }
 
 
@@ -93,6 +94,31 @@ def product_to_row(p):
         json.dumps(p.get("images") or [], ensure_ascii=False),
         json.dumps(p.get("downloads") or [], ensure_ascii=False),
         json.dumps(attrs, ensure_ascii=False),
+    )
+
+
+def insert_product(conn, p):
+    row = product_to_row(p)
+    conn.execute(
+        """INSERT OR REPLACE INTO products (
+            id, manufacturer_id, name, collection, category, raw_category,
+            sku, price, color, description, url, primary_image, image_count,
+            images, downloads, attrs
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        row,
+    )
+
+
+def update_product(conn, p):
+    row = product_to_row(p)
+    conn.execute(
+        """UPDATE products SET
+            name=?, collection=?, category=?, raw_category=?,
+            sku=?, price=?, color=?, description=?, url=?,
+            primary_image=?, image_count=?, images=?, downloads=?, attrs=?,
+            updated_at=datetime('now')
+           WHERE id=?""",
+        row[2:] + (row[0],),
     )
 
 

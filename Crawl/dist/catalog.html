@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Master Multi-Manufacturer Product Catalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50:'#f0fdfa', 100:'#ccfbf1', 500:'#14b8a6', 600:'#0d9488', 700:'#0f766e', 900:'#134e4a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        .card-zoom-img { transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        .product-card:hover .card-zoom-img { transform: scale(1.06); }
+        .mc-logo { width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #0f766e, #042f2e); box-shadow: 0 4px 14px rgba(15,118,110,.25); overflow: visible; }
+        .mc-logo-top { animation: mc-float-y 3.5s ease-in-out infinite; }
+        .mc-logo-left { animation: mc-float-l 3.5s ease-in-out infinite .15s; }
+        .mc-logo-right { animation: mc-float-r 3.5s ease-in-out infinite .3s; }
+        @keyframes mc-float-y { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes mc-float-l { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-2.5px,1.5px); } }
+        @keyframes mc-float-r { 0%,100% { transform: translate(0,0); } 50% { transform: translate(2.5px,1.5px); } }
+        @media (prefers-reduced-motion: reduce) {
+            .mc-logo-top, .mc-logo-left, .mc-logo-right { animation: none; }
+        }
+    </style>
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+</head>
+<body class="h-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
+    <div id="app" class="h-full flex flex-col overflow-hidden">
+        <header class="shrink-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16 gap-4">
+                    <a href="home.html" class="flex items-center gap-3 min-w-0">
+                        <svg class="mc-logo" viewBox="0 0 64 64" aria-hidden="true">
+                            <g opacity="0.4" fill="none" stroke="#99f6e4" stroke-width="1">
+                                <path d="M32 10 L52 22 L52 42 L32 54 L12 42 L12 22 Z"/>
+                                <path d="M32 34 L52 22"/><path d="M32 34 L12 22"/><path d="M32 34 L32 54"/>
+                            </g>
+                            <g class="mc-logo-top"><path d="M32 12 L50 23 L32 33 L14 23 Z" fill="#5eead4" opacity="0.9"/></g>
+                            <g class="mc-logo-left"><path d="M14 25 L31 35 L31 51 L14 41 Z" fill="#14b8a6" opacity="0.9"/></g>
+                            <g class="mc-logo-right"><path d="M33 35 L50 25 L50 41 L33 51 Z" fill="#0d9488" opacity="0.9"/></g>
+                        </svg>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Master Catalog</h1>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300">Multi-Brand</span>
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Unified Manufacturer Product Database</p>
+                        </div>
+                    </a>
+                    <div class="flex-1 max-w-xl hidden md:block">
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                            <input type="text" id="searchInput" placeholder="Search by product name, brand, SKU, category, collection..."
+                                class="w-full pl-10 pr-9 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white dark:focus:bg-slate-800 transition">
+                            <button id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="exportBtn" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-700 transition">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Export CSV</span>
+                        </button>
+                        <button id="themeToggle" class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Theme">
+                            <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                            <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="pb-3 md:hidden">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input type="text" id="mobileSearchInput" placeholder="Search products, brands, SKUs..."
+                            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+                        <span><strong id="statProducts" class="text-slate-900 dark:text-white font-semibold">—</strong> Total Products</span>
+                        <span>•</span>
+                        <span><strong id="statBrands" class="text-slate-900 dark:text-white font-semibold">—</strong> Brands</span>
+                        <span>•</span>
+                        <span><strong id="statCats" class="text-slate-900 dark:text-white font-semibold">—</strong> Categories</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <button id="viewGridBtn" class="p-1.5 rounded-md text-teal-700 dark:text-teal-400 bg-white dark:bg-slate-700 shadow-xs" title="Grid View">
+                                <i data-lucide="grid" class="w-4 h-4"></i>
+                            </button>
+                            <button id="viewTableBtn" class="p-1.5 rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200" title="Table View">
+                                <i data-lucide="list" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <select id="sortSelect" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                            <option value="brand_asc">Brand (A-Z)</option>
+                            <option value="category_asc">Category</option>
+                            <option value="photos_desc">Most Photos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex gap-6">
+            <aside class="w-64 flex-shrink-0 hidden lg:block overflow-y-auto custom-scrollbar">
+                <div class="space-y-6 pr-1">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="filter" class="w-3.5 h-3.5"></i> Filter By Brand
+                        </h2>
+                        <button id="resetFiltersBtn" class="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium">Reset All</button>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+                        <h3 class="text-xs font-semibold text-slate-900 dark:text-white mb-3">Manufacturers</h3>
+                        <input id="brandSearchInput" type="text" placeholder="Find brand…"
+                            class="w-full mb-2 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-teal-500">
+                        <div id="brandFilterList" class="space-y-1 max-h-64 overflow-y-auto custom-scrollbar pr-1"></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+                        <h3 class="text-xs font-semibold text-slate-900 dark:text-white mb-3">Category</h3>
+                        <div id="categoryFilterList" class="space-y-1 max-h-56 overflow-y-auto custom-scrollbar pr-1"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <main id="productScroll" class="flex-1 min-w-0 min-h-0 overflow-y-auto custom-scrollbar">
+                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <span id="resultCountText" class="text-sm font-semibold text-slate-800 dark:text-slate-200">Showing products...</span>
+                    <div id="activeFilterTags" class="flex flex-wrap items-center gap-1.5"></div>
+                </div>
+                <div id="productGridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5"></div>
+                <div id="productTableView" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3 w-16">Preview</th>
+                                    <th class="p-3">Product Name</th>
+                                    <th class="p-3">Manufacturer</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3">SKU</th>
+                                    <th class="p-3">Price / Specs</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="emptyState" class="hidden text-center py-16 px-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+                    <i data-lucide="package-x" class="w-12 h-12 mx-auto text-slate-400 mb-3"></i>
+                    <h3 class="text-base font-semibold text-slate-900 dark:text-white">No products match your criteria</h3>
+                    <button id="emptyResetBtn" class="mt-4 px-4 py-2 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-xs transition">Clear Filters</button>
+                </div>
+                <div id="scrollSentinel" class="h-8"></div>
+                <div id="scrollStatus" class="py-4 text-center text-xs text-slate-400"></div>
+            </main>
+        </div>
+
+        <div id="quickViewModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <span id="modalBrandBadge" class="px-2 py-0.5 text-xs font-semibold rounded-md bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300"></span>
+                        <h3 id="modalTitle" class="text-lg font-bold text-slate-900 dark:text-white mt-1"></h3>
+                    </div>
+                    <button id="closeModalBtn" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6 custom-scrollbar">
+                    <div class="space-y-3 min-w-0">
+                        <div class="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                            <img id="modalMainImg" src="" alt="" class="w-full h-full object-contain p-2" referrerpolicy="no-referrer">
+                        </div>
+                        <div id="modalThumbnails" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div class="space-y-4 text-xs">
+                        <div>
+                            <h4 class="font-semibold text-slate-900 dark:text-white text-sm mb-1">Product Description</h4>
+                            <p id="modalDescription" class="text-slate-600 dark:text-slate-300 leading-relaxed"></p>
+                        </div>
+                        <div class="border-t border-slate-100 dark:border-slate-800 pt-3">
+                            <h4 class="font-semibold text-slate-900 dark:text-white text-sm mb-2">Specifications</h4>
+                            <dl class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
+                                <div><dt class="text-slate-400">Manufacturer</dt><dd id="modalMfgName" class="font-semibold text-slate-800 dark:text-slate-200"></dd></div>
+                                <div><dt class="text-slate-400">Category</dt><dd id="modalCategory" class="font-semibold text-slate-800 dark:text-slate-200"></dd></div>
+                                <div><dt class="text-slate-400">SKU / Code</dt><dd id="modalSku" class="font-semibold text-slate-800 dark:text-slate-200 font-mono"></dd></div>
+                                <div><dt class="text-slate-400">Price / Format</dt><dd id="modalPriceOrFormat" class="font-semibold text-slate-800 dark:text-slate-200"></dd></div>
+                            </dl>
+                        </div>
+                        <div id="modalSpecsExtraWrap" class="hidden border-t border-slate-100 dark:border-slate-800 pt-3">
+                            <h4 class="font-semibold text-slate-900 dark:text-white text-sm mb-2">More specifications</h4>
+                            <dl id="modalSpecsExtra" class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800"></dl>
+                        </div>
+                        <div id="modalDownloadsWrap" class="hidden border-t border-slate-100 dark:border-slate-800 pt-3">
+                            <h4 class="font-semibold text-slate-900 dark:text-white text-sm mb-2">Downloads</h4>
+                            <div id="modalDownloads" class="flex flex-col gap-1.5"></div>
+                        </div>
+                        <div class="pt-2">
+                            <a id="modalProductLink" href="#" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-xl shadow-xs transition">
+                                <span>Visit Product Website</span>
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2 text-center text-xs text-slate-500 dark:text-slate-400">
+            <p>Master Multi-Manufacturer Product Catalog • Powered by Automated Discovery Pipeline</p>
+        </footer>
+    </div>
+
+    <script>
+        window.FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8fafc'/%3E%3Cpath d='M160 130a20 20 0 100-40 20 20 0 000 40zm-40 90h160l-50-65-35 45-25-30-50 50z' fill='%23cbd5e1'/%3E%3Ctext x='50%25' y='80%25' text-anchor='middle' fill='%2394a3b8' font-family='sans-serif' font-size='14'%3ENo Image Available%3C/text%3E%3C/svg%3E";
+        const params = new URLSearchParams(location.search);
+        let currentView = "grid";
+        let currentPage = 1;
+        let pageSize = 24;
+        let loading = false;
+        let hasMore = true;
+        let currentSort = "name_asc";
+        let searchQuery = params.get("q") || "";
+        let selectedBrand = params.get("brand") || "";
+        let selectedCategory = params.get("category") || "";
+        let brandQuery = "";
+        let allBrands = [];
+        let allCats = [];
+        let pageItems = [];
+        let totalFiltered = 0;
+
+        function refreshIcons() { if (window.lucide) window.lucide.createIcons(); }
+
+        function esc(s) {
+            return String(s || "").replace(/[&<>"']/g, function (c) {
+                return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+            });
+        }
+
+        function populateSidebar() {
+            const brandList = document.getElementById("brandFilterList");
+            const bq = brandQuery.toLowerCase().trim();
+            const total = allBrands.reduce(function (s, b) { return s + b.count; }, 0);
+            brandList.innerHTML = "";
+            const allBtn = document.createElement("button");
+            allBtn.className = "w-full text-left px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between font-medium " + (selectedBrand === "" ? "bg-teal-100 dark:bg-teal-900/40 text-teal-900 dark:text-teal-300" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800");
+            allBtn.innerHTML = "<span>All Brands</span><span class='text-slate-400'>" + total.toLocaleString() + "</span>";
+            allBtn.onclick = function () { selectedBrand = ""; currentPage = 1; populateSidebar(); load(); };
+            brandList.appendChild(allBtn);
+            allBrands.filter(function (b) { return !bq || b.name.toLowerCase().includes(bq); }).forEach(function (b) {
+                const active = selectedBrand === b.name;
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between font-medium " + (active ? "bg-teal-100 dark:bg-teal-900/40 text-teal-900 dark:text-teal-300" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800");
+                btn.innerHTML = "<span class='truncate'>" + esc(b.name) + "</span><span class='text-slate-400 font-mono text-[11px]'>" + b.count + "</span>";
+                btn.onclick = function () { selectedBrand = selectedBrand === b.name ? "" : b.name; currentPage = 1; populateSidebar(); load(); };
+                brandList.appendChild(btn);
+            });
+
+            const catList = document.getElementById("categoryFilterList");
+            catList.innerHTML = "";
+            const allCat = document.createElement("button");
+            allCat.className = "w-full text-left px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between font-medium " + (selectedCategory === "" ? "bg-teal-100 dark:bg-teal-900/40 text-teal-900 dark:text-teal-300" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800");
+            allCat.innerHTML = "<span>All Categories</span>";
+            allCat.onclick = function () { selectedCategory = ""; currentPage = 1; populateSidebar(); load(); };
+            catList.appendChild(allCat);
+            allCats.slice().sort(function (a, b) {
+                return String(a.name || "").localeCompare(String(b.name || ""));
+            }).forEach(function (c) {
+                const active = selectedCategory === c.name;
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between font-medium " + (active ? "bg-teal-100 dark:bg-teal-900/40 text-teal-900 dark:text-teal-300" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800");
+                btn.innerHTML = "<span class='truncate'>" + esc(c.name) + "</span><span class='text-slate-400 font-mono text-[11px]'>" + c.count + "</span>";
+                btn.onclick = function () { selectedCategory = selectedCategory === c.name ? "" : c.name; currentPage = 1; populateSidebar(); load(); };
+                catList.appendChild(btn);
+            });
+            refreshIcons();
+        }
+
+        function cardHtml(p) {
+                const imgUrl = p.primary_image || window.FALLBACK_IMG;
+                return "<div class='product-card group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col'>" +
+                    "<div class='relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden cursor-pointer' data-open='" + esc(p.id) + "'>" +
+                    "<img src='" + esc(imgUrl) + "' alt='" + esc(p.name) + "' loading='lazy' referrerpolicy='no-referrer' class='card-zoom-img w-full h-full object-contain p-3' onerror='this.onerror=null;this.src=window.FALLBACK_IMG'>" +
+                    "<div class='absolute top-2.5 left-2.5'><span class='px-2 py-0.5 text-[10px] font-bold rounded-md bg-teal-600/90 text-white backdrop-blur'>" + esc(p.manufacturer_name) + "</span></div>" +
+                    "<div class='absolute top-2.5 right-2.5'><span class='px-2 py-0.5 text-[10px] font-semibold rounded-md bg-slate-900/70 text-white backdrop-blur flex items-center gap-1'><i data-lucide=\"image\" class='w-3 h-3'></i> " + (p.image_count || 1) + "</span></div></div>" +
+                    "<div class='p-4 flex-1 flex flex-col justify-between'><div>" +
+                    "<div class='text-[11px] uppercase tracking-wider text-teal-700 dark:text-teal-400 font-semibold mb-0.5'>" + esc(p.category) + "</div>" +
+                    "<h3 class='text-sm font-bold text-slate-900 dark:text-white group-hover:text-teal-600 transition line-clamp-1'>" + esc(p.name) + "</h3>" +
+                    "<div class='mt-2 flex flex-wrap gap-1.5 text-[11px]'>" +
+                    (p.price ? "<span class='px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-semibold'>" + esc(p.price) + "</span>" : "") +
+                    (p.nominal_size ? "<span class='px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 font-mono'>" + esc(p.nominal_size) + "</span>" : "") +
+                    (p.finish || p.color ? "<span class='px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600'>" + esc(p.finish || p.color) + "</span>" : "") +
+                    "</div></div>" +
+                    "<div class='mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs'>" +
+                    "<span class='font-mono text-slate-400 text-[11px]'>" + esc(p.sku || "SKU N/A") + "</span>" +
+                    "<button data-open='" + esc(p.id) + "' class='inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 font-semibold hover:underline'><span>Details</span><i data-lucide='arrow-right' class='w-3.5 h-3.5'></i></button>" +
+                    "</div></div></div>";
+        }
+
+        function renderGrid(items, append) {
+            const el = document.getElementById("productGridView");
+            const html = items.map(cardHtml).join("");
+            if (append) el.insertAdjacentHTML("beforeend", html);
+            else el.innerHTML = html;
+        }
+
+        function rowHtml(p) {
+            return "<tr class='hover:bg-slate-50 dark:hover:bg-slate-800/50 transition cursor-pointer' data-open='" + esc(p.id) + "'>" +
+                    "<td class='p-3'><div class='w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700'><img src='" + esc(p.primary_image || window.FALLBACK_IMG) + "' class='w-full h-full object-contain p-0.5' loading='lazy' referrerpolicy='no-referrer' onerror='this.onerror=null;this.src=window.FALLBACK_IMG'></div></td>" +
+                    "<td class='p-3 font-semibold text-slate-900 dark:text-white'>" + esc(p.name) + "</td>" +
+                    "<td class='p-3 text-slate-600 dark:text-slate-400 font-medium'>" + esc(p.manufacturer_name) + "</td>" +
+                    "<td class='p-3'><span class='px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800'>" + esc(p.category) + "</span></td>" +
+                    "<td class='p-3 font-mono text-[11px] text-slate-500'>" + esc(p.sku || "-") + "</td>" +
+                    "<td class='p-3 font-semibold text-emerald-600 dark:text-emerald-400'>" + esc(p.price || p.nominal_size || "-") + "</td>" +
+                    "<td class='p-3 text-right'><a href='" + esc(p.url) + "' target='_blank' onclick='event.stopPropagation()' class='p-1.5 text-slate-400 hover:text-teal-600 rounded-md hover:bg-slate-100 inline-flex'><i data-lucide='external-link' class='w-4 h-4'></i></a></td></tr>";
+        }
+
+        function renderTable(items, append) {
+            const el = document.getElementById("productTableBody");
+            const html = items.map(rowHtml).join("");
+            if (append) el.insertAdjacentHTML("beforeend", html);
+            else el.innerHTML = html;
+        }
+
+        function bindOpen(scope) {
+            (scope || document).querySelectorAll("[data-open]").forEach(function (el) {
+                if (el.dataset.bound) return;
+                el.dataset.bound = "1";
+                el.addEventListener("click", function (e) {
+                    if (e.target.closest("a")) return;
+                    const id = el.getAttribute("data-open");
+                    const p = pageItems.find(function (x) { return x.id === id; });
+                    openQuickView(p);
+                });
+            });
+        }
+
+        function render(data, append) {
+            const incoming = data.products || [];
+            if (append) pageItems = pageItems.concat(incoming);
+            else pageItems = incoming;
+            totalFiltered = data.total || 0;
+            hasMore = pageItems.length < totalFiltered;
+            document.getElementById("resultCountText").innerHTML = "Showing <span class='font-bold text-slate-900 dark:text-white'>" + pageItems.length.toLocaleString() + "</span> of <span class='text-slate-500'>" + totalFiltered.toLocaleString() + "</span> products";
+            const tags = document.getElementById("activeFilterTags");
+            tags.innerHTML = "";
+            function addTag(label, fn) {
+                const tag = document.createElement("span");
+                tag.className = "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-teal-100 dark:bg-teal-950/70 text-teal-900 dark:text-teal-200 border border-teal-200 dark:border-teal-800/60";
+                tag.innerHTML = "<span>" + esc(label) + "</span><button class='hover:text-teal-700 ml-0.5'><i data-lucide='x' class='w-3 h-3'></i></button>";
+                tag.querySelector("button").onclick = fn;
+                tags.appendChild(tag);
+            }
+            if (searchQuery) addTag("Search: \"" + searchQuery + "\"", function () { searchQuery = ""; document.getElementById("searchInput").value = ""; document.getElementById("mobileSearchInput").value = ""; document.getElementById("clearSearchBtn").classList.add("hidden"); currentPage = 1; load(); });
+            if (selectedBrand) addTag("Brand: " + selectedBrand, function () { selectedBrand = ""; currentPage = 1; populateSidebar(); load(); });
+            if (selectedCategory) addTag("Category: " + selectedCategory, function () { selectedCategory = ""; currentPage = 1; populateSidebar(); load(); });
+
+            const empty = document.getElementById("emptyState");
+            const grid = document.getElementById("productGridView");
+            const table = document.getElementById("productTableView");
+            if (pageItems.length === 0) {
+                grid.classList.add("hidden"); table.classList.add("hidden"); empty.classList.remove("hidden");
+                document.getElementById("scrollStatus").textContent = "";
+                refreshIcons(); return;
+            }
+            empty.classList.add("hidden");
+            if (currentView === "grid") { grid.classList.remove("hidden"); table.classList.add("hidden"); renderGrid(incoming, append); }
+            else { grid.classList.add("hidden"); table.classList.remove("hidden"); renderTable(incoming, append); }
+            bindOpen();
+            document.getElementById("scrollStatus").textContent = hasMore ? "Scroll for more" : "End of results";
+            refreshIcons();
+        }
+
+        function openQuickView(p) {
+            if (!p) return;
+            document.getElementById("modalBrandBadge").innerText = p.manufacturer_name || "";
+            document.getElementById("modalTitle").innerText = p.name || "";
+            document.getElementById("modalDescription").innerText = p.description || "No detailed description available.";
+            document.getElementById("modalMfgName").innerText = p.manufacturer_name || "";
+            document.getElementById("modalCategory").innerText = p.category || "";
+            document.getElementById("modalSku").innerText = p.sku || "N/A";
+            document.getElementById("modalPriceOrFormat").innerText = p.price || p.color || p.finish || p.nominal_size || "N/A";
+            document.getElementById("modalProductLink").href = p.url || "#";
+            const extra = p.specs || {};
+            const extraKeys = Object.keys(extra).filter(function (k) { return extra[k] && typeof extra[k] !== "object"; });
+            document.getElementById("modalSpecsExtraWrap").classList.toggle("hidden", extraKeys.length === 0);
+            document.getElementById("modalSpecsExtra").innerHTML = extraKeys.map(function (k) {
+                return "<div><dt class='text-slate-400'>" + esc(k) + "</dt><dd class='font-semibold text-slate-800 dark:text-slate-200'>" + esc(String(extra[k])) + "</dd></div>";
+            }).join("");
+            const dls = p.downloads || [];
+            document.getElementById("modalDownloadsWrap").classList.toggle("hidden", !dls.length);
+            document.getElementById("modalDownloads").innerHTML = dls.map(function (d) {
+                return "<a href='" + esc(d.url) + "' target='_blank' class='text-teal-700 dark:text-teal-400 hover:underline'>" + esc(d.name || "Download") + "</a>";
+            }).join("");
+            const allImgs = p.images && p.images.length ? p.images : [p.primary_image || window.FALLBACK_IMG];
+            document.getElementById("modalMainImg").src = allImgs[0] || window.FALLBACK_IMG;
+            document.getElementById("modalThumbnails").innerHTML = allImgs.map(function (img, idx) {
+                return "<button class='thumb-btn flex-shrink-0 w-14 h-14 rounded-xl border-2 " + (idx === 0 ? "border-teal-600" : "border-transparent") + " overflow-hidden bg-slate-100 dark:bg-slate-800 p-0.5' data-src='" + esc(img) + "'><img src='" + esc(img) + "' class='w-full h-full object-contain' referrerpolicy='no-referrer'></button>";
+            }).join("");
+            document.querySelectorAll(".thumb-btn").forEach(function (btn) {
+                btn.onclick = function () {
+                    document.getElementById("modalMainImg").src = btn.getAttribute("data-src");
+                    document.querySelectorAll(".thumb-btn").forEach(function (b) { b.classList.remove("border-teal-600"); b.classList.add("border-transparent"); });
+                    btn.classList.remove("border-transparent"); btn.classList.add("border-teal-600");
+                };
+            });
+            document.getElementById("quickViewModal").classList.remove("hidden");
+            refreshIcons();
+        }
+
+        function load(opts) {
+            const reset = !opts || opts.reset !== false;
+            if (loading) return;
+            if (!reset && !hasMore) return;
+            if (reset) {
+                currentPage = 1;
+                hasMore = true;
+                pageItems = [];
+                const sc = document.getElementById("productScroll");
+                if (sc) sc.scrollTop = 0;
+            }
+            loading = true;
+            document.getElementById("scrollStatus").textContent = "Loading…";
+            const u = new URL("/api/products", location.origin);
+            if (selectedBrand) u.searchParams.set("brand", selectedBrand);
+            if (selectedCategory) u.searchParams.set("category", selectedCategory);
+            if (searchQuery) u.searchParams.set("q", searchQuery);
+            u.searchParams.set("sort", currentSort);
+            u.searchParams.set("page", String(currentPage));
+            u.searchParams.set("page_size", String(pageSize));
+            fetch(u).then(function (r) { return r.json(); }).then(function (data) {
+                loading = false;
+                render(data, !reset);
+            }).catch(function () {
+                loading = false;
+                document.getElementById("scrollStatus").textContent = "Could not load more";
+            });
+        }
+
+        function loadMore() {
+            if (loading || !hasMore) return;
+            currentPage += 1;
+            load({ reset: false });
+        }
+
+        function resetAll() {
+            searchQuery = ""; selectedBrand = ""; selectedCategory = ""; brandQuery = "";
+            document.getElementById("searchInput").value = "";
+            document.getElementById("mobileSearchInput").value = "";
+            document.getElementById("brandSearchInput").value = "";
+            document.getElementById("clearSearchBtn").classList.add("hidden");
+            populateSidebar();
+            load();
+        }
+
+        document.getElementById("searchInput").value = searchQuery;
+        document.getElementById("searchInput").addEventListener("input", function (e) {
+            searchQuery = e.target.value; currentPage = 1;
+            document.getElementById("clearSearchBtn").classList.toggle("hidden", !searchQuery);
+            document.getElementById("mobileSearchInput").value = searchQuery;
+            load();
+        });
+        document.getElementById("mobileSearchInput").addEventListener("input", function (e) {
+            searchQuery = e.target.value; currentPage = 1;
+            document.getElementById("searchInput").value = searchQuery;
+            document.getElementById("clearSearchBtn").classList.toggle("hidden", !searchQuery);
+            load();
+        });
+        document.getElementById("clearSearchBtn").onclick = function () {
+            searchQuery = ""; document.getElementById("searchInput").value = ""; document.getElementById("mobileSearchInput").value = "";
+            document.getElementById("clearSearchBtn").classList.add("hidden"); currentPage = 1; load();
+        };
+        document.getElementById("brandSearchInput").addEventListener("input", function (e) { brandQuery = e.target.value; populateSidebar(); });
+        document.getElementById("sortSelect").onchange = function (e) { currentSort = e.target.value; load(); };
+        document.getElementById("resetFiltersBtn").onclick = resetAll;
+        document.getElementById("emptyResetBtn").onclick = resetAll;
+        document.getElementById("closeModalBtn").onclick = function () { document.getElementById("quickViewModal").classList.add("hidden"); };
+        document.getElementById("quickViewModal").onclick = function (e) { if (e.target.id === "quickViewModal") e.currentTarget.classList.add("hidden"); };
+        document.getElementById("viewGridBtn").onclick = function () {
+            currentView = "grid";
+            document.getElementById("viewGridBtn").className = "p-1.5 rounded-md text-teal-700 dark:text-teal-400 bg-white dark:bg-slate-700 shadow-xs";
+            document.getElementById("viewTableBtn").className = "p-1.5 rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+            document.getElementById("productGridView").classList.remove("hidden");
+            document.getElementById("productTableView").classList.add("hidden");
+            renderGrid(pageItems, false);
+            bindOpen();
+            refreshIcons();
+        };
+        document.getElementById("viewTableBtn").onclick = function () {
+            currentView = "table";
+            document.getElementById("viewTableBtn").className = "p-1.5 rounded-md text-teal-700 dark:text-teal-400 bg-white dark:bg-slate-700 shadow-xs";
+            document.getElementById("viewGridBtn").className = "p-1.5 rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+            document.getElementById("productGridView").classList.add("hidden");
+            document.getElementById("productTableView").classList.remove("hidden");
+            renderTable(pageItems, false);
+            bindOpen();
+            refreshIcons();
+        };
+        new IntersectionObserver(function (entries) {
+            if (entries[0] && entries[0].isIntersecting) loadMore();
+        }, { root: document.getElementById("productScroll"), rootMargin: "240px" }).observe(document.getElementById("scrollSentinel"));
+        document.getElementById("exportBtn").onclick = function () {
+            const u = new URL("/api/products", location.origin);
+            if (selectedBrand) u.searchParams.set("brand", selectedBrand);
+            if (selectedCategory) u.searchParams.set("category", selectedCategory);
+            if (searchQuery) u.searchParams.set("q", searchQuery);
+            u.searchParams.set("page_size", "200");
+            fetch(u).then(function (r) { return r.json(); }).then(function (data) {
+                const headers = ["ID", "Manufacturer", "Product Name", "Category", "SKU", "Price", "URL", "Primary Image"];
+                const rows = (data.products || []).map(function (p) {
+                    return [p.id, p.manufacturer_name, p.name, p.category, p.sku, p.price, p.url, p.primary_image].map(function (x) {
+                        return "\"" + String(x || "").replace(/\"/g, "\"\"") + "\"";
+                    }).join(",");
+                });
+                const blob = new Blob([[headers.join(",")].concat(rows).join("\n")], { type: "text/csv" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "master_catalog_export_" + Date.now() + ".csv";
+                a.click();
+            });
+        };
+        document.getElementById("themeToggle").onclick = function () {
+            document.documentElement.classList.toggle("dark");
+            localStorage.setItem("theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
+            refreshIcons();
+        };
+        if (localStorage.getItem("theme") === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            document.documentElement.classList.add("dark");
+        }
+
+        Promise.all([
+            fetch("/api/stats").then(function (r) { return r.json(); }),
+            fetch("/api/brands").then(function (r) { return r.json(); }),
+            fetch("/api/categories").then(function (r) { return r.json(); })
+        ]).then(function (res) {
+            document.getElementById("statProducts").textContent = Number(res[0].products).toLocaleString();
+            document.getElementById("statBrands").textContent = Number(res[0].brands).toLocaleString();
+            document.getElementById("statCats").textContent = String(res[2].length);
+            allBrands = res[1];
+            allCats = res[2];
+            populateSidebar();
+            load();
+        });
+    </script>
+</body>
+</html>

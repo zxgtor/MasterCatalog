@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
     <title>Manufacturer</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: { 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e' } } } } }
@@ -18,9 +19,14 @@
     <div class="min-h-full flex flex-col">
         <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-                <div class="min-w-0">
-                    <a href="home.html" class="text-[11px] uppercase tracking-wider text-teal-700 dark:text-teal-400 font-semibold">← Library</a>
-                    <h1 id="brandTitle" class="text-lg font-bold tracking-tight text-slate-900 dark:text-white truncate">Loading…</h1>
+                <div class="flex items-center gap-3 min-w-0">
+                    <a href="home.html" class="flex-shrink-0">
+                        <img src="logo.svg" alt="Master Catalog" class="w-10 h-10 rounded-xl shadow-md">
+                    </a>
+                    <div class="min-w-0">
+                        <a href="home.html" class="text-[11px] uppercase tracking-wider text-teal-700 dark:text-teal-400 font-semibold">← Library</a>
+                        <h1 id="brandTitle" class="text-lg font-bold tracking-tight text-slate-900 dark:text-white truncate">Loading…</h1>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <a id="siteLink" href="#" target="_blank" rel="noopener" class="hidden px-3 py-2 text-xs font-medium bg-teal-600 hover:bg-teal-700 text-white rounded-lg">Visit site</a>
@@ -55,11 +61,11 @@
                 <button id="dClose" class="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100">✕</button>
             </div>
             <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div class="min-w-0">
                     <div class="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden">
                         <img id="dImg" src="" alt="" class="w-full h-full object-contain p-3" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=window.__HOUSE_FALLBACK">
                     </div>
-                    <div id="dThumbs" class="flex gap-2 overflow-x-auto mt-3"></div>
+                    <div id="dThumbs" class="flex flex-wrap gap-2 mt-3"></div>
                 </div>
                 <div class="space-y-4 text-sm">
                     <div>
@@ -150,7 +156,7 @@
             document.getElementById('dDownloads').innerHTML = dls.map(function (d) {
                 return '<a href="' + esc(d.url) + '" target="_blank" rel="noopener" class="text-xs text-teal-700 hover:underline">' + esc(d.name || 'Download') + '</a>';
             }).join('');
-            const thumbs = (p.images && p.images.length ? p.images : [p.primary_image]).filter(Boolean).slice(0, 8);
+            const thumbs = (p.images && p.images.length ? p.images : [p.primary_image]).filter(Boolean);
             document.getElementById('dThumbs').innerHTML = thumbs.map(function (u) {
                 return '<button type="button" class="w-14 h-14 rounded-xl border border-slate-200 overflow-hidden bg-slate-100"><img src="' + esc(u) + '" class="w-full h-full object-contain" referrerpolicy="no-referrer"></button>';
             }).join('');
