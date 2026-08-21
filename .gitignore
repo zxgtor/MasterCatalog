@@ -14,3 +14,6 @@ master_catalog.html
 daltile_products.json
 daltile_products.csv
 index.html
+
+# Build artifact
+dist.zip
