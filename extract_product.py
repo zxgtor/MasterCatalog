@@ -94,6 +94,22 @@ def extract_page_details(html, page_url):
             cur = offers.get("priceCurrency") or "USD"
             details["price"] = f"{offers['price']} {cur}".strip()
 
+    if not details["primary_image"]:
+        og = re.search(r'property=["\']og:image(?::secure_url)?["\'][^>]+content=["\']([^"\']+)', html, re.I)
+        if not og:
+            og = re.search(r'content=["\']([^"\']+)["\'][^>]+property=["\']og:image', html, re.I)
+        if not og:
+            og = re.search(r'name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)', html, re.I)
+        if og:
+            img = unescape(og.group(1)).strip()
+            if img.startswith("//"):
+                img = "https:" + img
+            elif img.startswith("/"):
+                img = urljoin(page_url, img)
+            if img.startswith("http") and not re.search(r"logo|icon|sprite|favicon", img, re.I):
+                details["primary_image"] = img
+                details["images"] = [img]
+
     sku_m = re.search(r'id=["\']multiSkuValue["\']>\s*([^<]+)', html, re.I)
     if sku_m:
         details["sku"] = sku_m.group(1).strip() or details["sku"]
@@ -148,7 +164,6 @@ def extract_page_details(html, page_url):
             continue
         low = href.lower()
         if not (low.endswith(".pdf") or ".pdf?" in low or "flippingbook.com" in low):
-            continue
             continue
         full = urljoin(page_url, href)
         if full in seen:
