@@ -1,6 +1,6 @@
-# MasterCatalog â†’ Coin
+# MasterCatalog Ã¢â€ â€™ Coin
 
-main push and manual workflow_dispatch run build/smoke tests â†’ Tailscale â†’ SSH â†’ release â†’ HTTPS verification. Only main deploys. Runtime uses Python 3 standard library, port 28765. Database stays outside releases. No root deployment script or passwordless sudo is required. Existing AppGallery is untouched.
+main push and manual workflow_dispatch run build/smoke tests Ã¢â€ â€™ Tailscale Ã¢â€ â€™ SSH Ã¢â€ â€™ release Ã¢â€ â€™ HTTPS verification. Only main deploys. Runtime uses Python 3 standard library, port 28765. Database stays outside releases. No root deployment script or passwordless sudo is required. Existing AppGallery is untouched.
 
 ## One-time user setup
 
@@ -8,12 +8,12 @@ main push and manual workflow_dispatch run build/smoke tests â†’ Tailscale 
 
    scp /path/to/aareas.db coin:/srv/ai-apps/mastercatalog/data/aareas.db
 
-2. GitHub repository Settings â†’ Secrets and variables â†’ Actions (repository secrets, no paid environment required):
-   - TS_OAUTH_CLIENT_ID / TS_OAUTH_SECRET: Tailscale OAuth client, auth_keys write scope, tag:mastercatalog-ci. Allow this tag to reach 100.80.142.52:22 only in the tailnet policy.
+2. GitHub repository Settings Ã¢â€ â€™ Secrets and variables Ã¢â€ â€™ Actions (repository secrets, no paid environment required):
+   - TS_OAUTH_CLIENT_ID / TS_OAUTH_SECRET: Tailscale OAuth client, auth_keys write scope, tag:github-deploy. Allow this tag to reach 100.80.142.52:22 only in the tailnet policy.
    - COIN_SSH_KEY: a dedicated Ed25519 deployment private key. Add its public key to Coin jason ~/.ssh/authorized_keys with `restrict` prefix. Use `gh secret set COIN_SSH_KEY -R zxgtor/MasterCatalog < private-key-file` locally; never paste the key into chat. It grants access as jason; a dedicated restricted account would require additional administrator provisioning.
    - COIN_KNOWN_HOSTS: pinned Coin Ed25519 host key (already populated by setup after authenticated SSH inspection). Never use StrictHostKeyChecking=no.
 
-3. DNS/HTTPS completed on Coin: proxied wildcard CNAME `* → myforges.com` resolves MasterCatalog. A dedicated Let's Encrypt certificate for mastercatalog.myforges.com was issued (expires 2027-01-01), and /etc/nginx/conf.d/mastercatalog.conf serves the application on port 28765. Until the backend is deployed, HTTP redirects to HTTPS and HTTPS returns 503 with no-store. ACME HTTP challenge remains accessible. Do not install a duplicate sites-enabled configuration.
+3. DNS/HTTPS completed on Coin: proxied wildcard CNAME `* â†’ myforges.com` resolves MasterCatalog. A dedicated Let's Encrypt certificate for mastercatalog.myforges.com was issued (expires 2027-01-01), and /etc/nginx/conf.d/mastercatalog.conf serves the application on port 28765. Until the backend is deployed, HTTP redirects to HTTPS and HTTPS returns 503 with no-store. ACME HTTP challenge remains accessible. Do not install a duplicate sites-enabled configuration.
 
 4. Unknown domains no longer fall through to Gallery: /etc/nginx/conf.d/coin-unknown-hosts.conf returns HTTP 404 and rejects unknown TLS handshakes. Existing Gallery was verified HTTP 200. Certbot scheduled renewal and an Nginx deploy reload hook are present. Cloudflare's dashboard SSL mode could not be inspected; select Full (strict). No Flexible workaround was used.
 

@@ -36,7 +36,7 @@ jobs:
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:mastercatalog-ci
+          tags: tag:github-deploy
       - name: Deploy and verify
         env:
           SSH_KEY: ${{ secrets.COIN_SSH_KEY }}
