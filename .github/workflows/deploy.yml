@@ -1,0 +1,53 @@
+name: Deploy MasterCatalog to Coin
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mastercatalog-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Build and smoke test
+        run: |
+          python3 deploy/smoke.py
+          bash -n deploy/release.sh
+          tar -czf /tmp/mastercatalog.tar.gz serve.py db.py home.html catalog.html house.html manufacturers.html logo.svg manufacturers_with_url.json manufacturers_with_url.csv
+      - name: Check deployment secrets
+        env:
+          TS_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          TS_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+          SSH_KEY: ${{ secrets.COIN_SSH_KEY }}
+          HOST_KEY: ${{ secrets.COIN_KNOWN_HOSTS }}
+        run: |
+          for name in TS_ID TS_SECRET SSH_KEY HOST_KEY; do
+            test -n "${!name}" || { echo "Missing deployment secret: $name"; exit 1; }
+          done
+      - uses: tailscale/github-action@d1b6cd204f8dceda5b3eaad7f1f767be390056cd # v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:mastercatalog-ci
+      - name: Deploy and verify
+        env:
+          SSH_KEY: ${{ secrets.COIN_SSH_KEY }}
+          HOST_KEY: ${{ secrets.COIN_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$HOST_KEY" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          opts='-o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15'
+          scp $opts /tmp/mastercatalog.tar.gz jason@100.80.142.52:/srv/ai-apps/mastercatalog/incoming.tar.gz
+          scp $opts deploy/release.sh jason@100.80.142.52:/srv/ai-apps/mastercatalog/release.sh
+          ssh $opts jason@100.80.142.52 "bash /srv/ai-apps/mastercatalog/release.sh $GITHUB_SHA"
+          curl --fail --silent --show-error https://mastercatalog.myforges.com/api/stats | python3 -c 'import json,sys; assert json.load(sys.stdin)["products"]>0'

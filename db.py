@@ -1,10 +1,11 @@
 """SQLite access. One products table; manufacturer extras live in attrs JSON."""
 import json
+import os
 import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-DB_PATH = ROOT / "aareas.db"
+DB_PATH = Path(os.environ.get("MASTER_CATALOG_DB", ROOT / "aareas.db"))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS manufacturers (

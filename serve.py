@@ -1,5 +1,6 @@
 """Local Aareas site. Product data comes from aareas.db."""
 import json
+import os
 import http.server
 import socketserver
 import webbrowser
@@ -8,7 +9,7 @@ from urllib.parse import parse_qs, urlparse
 
 from db import connect, init_db, row_to_product
 
-PORT = 8765
+PORT = int(os.environ.get("MASTER_CATALOG_PORT", "8765"))
 ROOT = Path(__file__).resolve().parent
 DB = connect()
 init_db(DB)
@@ -146,6 +147,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             path = "/catalog.html"
         return super().translate_path(path)
 
+    def send_head(self):
+        path = urlparse(self.path).path
+        if path not in {"/", "/home.html", "/catalog.html", "/master_catalog.html",
+                        "/house.html", "/manufacturers.html", "/logo.svg",
+                        "/manufacturers_with_url.json", "/manufacturers_with_url.csv"}:
+            self.send_error(404)
+            return None
+        return super().send_head()
+
     def do_GET(self):
         parsed = urlparse(self.path)
         qs = parse_qs(parsed.query)
@@ -173,7 +183,8 @@ if __name__ == "__main__":
     url = f"http://127.0.0.1:{PORT}/"
     with Server(("127.0.0.1", PORT), Handler) as httpd:
         print(f"Aareas library at {url}")
-        webbrowser.open(url)
+        if os.environ.get("MASTER_CATALOG_NO_BROWSER") != "1":
+            webbrowser.open(url)
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:

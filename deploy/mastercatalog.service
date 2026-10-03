@@ -1,0 +1,17 @@
+[Unit]
+Description=MasterCatalog
+After=network.target
+[Service]
+WorkingDirectory=/srv/ai-apps/mastercatalog/current
+Environment=MASTER_CATALOG_DB=/srv/ai-apps/mastercatalog/data/aareas.db
+Environment=MASTER_CATALOG_PORT=28765
+Environment=MASTER_CATALOG_NO_BROWSER=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /srv/ai-apps/mastercatalog/current/serve.py
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+[Install]
+WantedBy=default.target
